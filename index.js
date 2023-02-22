@@ -3540,6 +3540,9 @@ client.on("messageCreate", async (message) => {
   }
 
   if (message.member.guild.id === GUILD_ID) {
+    if (!fs.existsSync("./data/config.json"))
+      return console.log("Config not initialized.");
+
     let config = JSON.parse(fs.readFileSync("./data/config.json"));
     let link_data = db_gen
       .prepare(`SELECT * FROM links WHERE Discord_ID=?`)
@@ -3552,6 +3555,10 @@ client.on("messageCreate", async (message) => {
       .get(link);
     if (!user_data) return;
     let userData = user_data.level;
+
+    for (const [_, value] of Object.entries(config.server.roles.levels)) {
+      if (value === "undefined") return;
+    }
 
     let role_100k = config.server.roles.levels.r_100k;
     let role_50k = config.server.roles.levels.r_50k;
@@ -4783,365 +4790,371 @@ client.on("interactionCreate", async (interaction) => {
     progressBar = "";
 
     let quests = db_gen.prepare(`SELECT * FROM quests`).all();
+    if (quests.length > 0) {
+      let idList = [
+        quests[0].msg_id,
+        quests[1].msg_id,
+        quests[2].msg_id,
+        quests[3].msg_id,
+        quests[4].msg_id,
+      ];
 
-    let idList = [
-      quests[0].msg_id,
-      quests[1].msg_id,
-      quests[2].msg_id,
-      quests[3].msg_id,
-      quests[4].msg_id,
-    ];
+      //quest 1 check
+      if (interaction.message.id == idList[0]) {
+        if (
+          interaction.customId === "quest_1" &&
+          checkEligibility(interaction.user.id, 1) &&
+          !hasCompleted(interaction.user.id, 1)
+        ) {
+          awardPoints(interaction.user, 1);
 
-    //quest 1 check
-    if (interaction.message.id == idList[0]) {
-      if (
-        interaction.customId === "quest_1" &&
-        checkEligibility(interaction.user.id, 1) &&
-        !hasCompleted(interaction.user.id, 1)
-      ) {
-        awardPoints(interaction.user, 1);
+          weeklyCheck(interaction.user.id, 1);
+          updateQuestCompletion(1);
+          return interaction
+            .reply({
+              content: "You received 2 points for completing quest 1.",
+              ephemeral: true,
+            })
+            .catch(console.log);
+        } else {
+          //error handling
+          if (hasCompleted(interaction.user.id, 1))
+            return interaction
+              .reply({
+                content:
+                  "You have already completed quest 1 for the week, look at the other quests or return next week for more rewards.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userIsLinked)
+            return interaction
+              .reply({
+                content:
+                  "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userHasDBEntry)
+            return interaction
+              .reply({
+                content:
+                  "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (errorWildcard)
+            return interaction
+              .reply({
+                content:
+                  "Some error occured. Message n3xistence#0003 for help.",
+                ephemeral: true,
+              })
+              .catch(console.log);
 
-        weeklyCheck(interaction.user.id, 1);
-        updateQuestCompletion(1);
-        return interaction
-          .reply({
-            content: "You received 2 points for completing quest 1.",
-            ephemeral: true,
-          })
-          .catch(console.log);
-      } else {
-        //error handling
-        if (hasCompleted(interaction.user.id, 1))
           return interaction
             .reply({
               content:
-                "You have already completed quest 1 for the week, look at the other quests or return next week for more rewards.",
+                "You do not meet the requirement:\n" +
+                (nowValue - thenValue) +
+                "/" +
+                rawData +
+                " " +
+                questType +
+                " completed. (" +
+                +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
+                "%)\n" +
+                progressBar,
               ephemeral: true,
             })
             .catch(console.log);
-        if (!userIsLinked)
-          return interaction
-            .reply({
-              content:
-                "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (!userHasDBEntry)
-          return interaction
-            .reply({
-              content:
-                "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (errorWildcard)
-          return interaction
-            .reply({
-              content: "Some error occured. Message n3xistence#0003 for help.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-
-        return interaction
-          .reply({
-            content:
-              "You do not meet the requirement:\n" +
-              (nowValue - thenValue) +
-              "/" +
-              rawData +
-              " " +
-              questType +
-              " completed. (" +
-              +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
-              "%)\n" +
-              progressBar,
-            ephemeral: true,
-          })
-          .catch(console.log);
+        }
       }
-    }
 
-    //quest 2 check
-    if (interaction.message.id == idList[1]) {
-      if (
-        interaction.customId === "quest_2" &&
-        checkEligibility(interaction.user.id, 2) &&
-        !hasCompleted(interaction.user.id, 2)
-      ) {
-        awardPoints(interaction.user, 2);
+      //quest 2 check
+      if (interaction.message.id == idList[1]) {
+        if (
+          interaction.customId === "quest_2" &&
+          checkEligibility(interaction.user.id, 2) &&
+          !hasCompleted(interaction.user.id, 2)
+        ) {
+          awardPoints(interaction.user, 2);
 
-        weeklyCheck(interaction.user.id, 2);
-        updateQuestCompletion(2);
-        return interaction
-          .reply({
-            content: "You received 2 points for completing quest 2.",
-            ephemeral: true,
-          })
-          .catch(console.log);
-      } else {
-        //error handling
-        if (hasCompleted(interaction.user.id, 2))
+          weeklyCheck(interaction.user.id, 2);
+          updateQuestCompletion(2);
+          return interaction
+            .reply({
+              content: "You received 2 points for completing quest 2.",
+              ephemeral: true,
+            })
+            .catch(console.log);
+        } else {
+          //error handling
+          if (hasCompleted(interaction.user.id, 2))
+            return interaction
+              .reply({
+                content:
+                  "You have already completed quest 2 for the week, look at the other quests or return next week for more rewards.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userIsLinked)
+            return interaction
+              .reply({
+                content:
+                  "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userHasDBEntry)
+            return interaction
+              .reply({
+                content:
+                  "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (errorWildcard)
+            return interaction
+              .reply({
+                content:
+                  "Some error occured. Message n3xistence#0003 for help.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+
           return interaction
             .reply({
               content:
-                "You have already completed quest 2 for the week, look at the other quests or return next week for more rewards.",
+                "You do not meet the requirement:\n" +
+                (nowValue - thenValue) +
+                "/" +
+                rawData +
+                " " +
+                questType +
+                " completed. (" +
+                +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
+                "%)\n" +
+                progressBar,
               ephemeral: true,
             })
             .catch(console.log);
-        if (!userIsLinked)
-          return interaction
-            .reply({
-              content:
-                "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (!userHasDBEntry)
-          return interaction
-            .reply({
-              content:
-                "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (errorWildcard)
-          return interaction
-            .reply({
-              content: "Some error occured. Message n3xistence#0003 for help.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-
-        return interaction
-          .reply({
-            content:
-              "You do not meet the requirement:\n" +
-              (nowValue - thenValue) +
-              "/" +
-              rawData +
-              " " +
-              questType +
-              " completed. (" +
-              +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
-              "%)\n" +
-              progressBar,
-            ephemeral: true,
-          })
-          .catch(console.log);
+        }
       }
-    }
 
-    //quest 3 check
-    if (interaction.message.id == idList[2]) {
-      if (
-        interaction.customId === "quest_3" &&
-        checkEligibility(interaction.user.id, 3) &&
-        !hasCompleted(interaction.user.id, 3)
-      ) {
-        awardPoints(interaction.user, 3);
+      //quest 3 check
+      if (interaction.message.id == idList[2]) {
+        if (
+          interaction.customId === "quest_3" &&
+          checkEligibility(interaction.user.id, 3) &&
+          !hasCompleted(interaction.user.id, 3)
+        ) {
+          awardPoints(interaction.user, 3);
 
-        weeklyCheck(interaction.user.id, 3);
-        updateQuestCompletion(3);
-        return interaction
-          .reply({
-            content: "You received 2 points for completing quest 3.",
-            ephemeral: true,
-          })
-          .catch(console.log);
-      } else {
-        //error handling
-        if (hasCompleted(interaction.user.id, 3))
+          weeklyCheck(interaction.user.id, 3);
+          updateQuestCompletion(3);
+          return interaction
+            .reply({
+              content: "You received 2 points for completing quest 3.",
+              ephemeral: true,
+            })
+            .catch(console.log);
+        } else {
+          //error handling
+          if (hasCompleted(interaction.user.id, 3))
+            return interaction
+              .reply({
+                content:
+                  "You have already completed quest 3 for the week, look at the other quests or return next week for more rewards.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userIsLinked)
+            return interaction
+              .reply({
+                content:
+                  "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userHasDBEntry)
+            return interaction
+              .reply({
+                content:
+                  "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (errorWildcard)
+            return interaction
+              .reply({
+                content:
+                  "Some error occured. Message n3xistence#0003 for help.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+
           return interaction
             .reply({
               content:
-                "You have already completed quest 3 for the week, look at the other quests or return next week for more rewards.",
+                "You do not meet the requirement:\n" +
+                (nowValue - thenValue) +
+                "/" +
+                rawData +
+                " " +
+                questType +
+                " completed. (" +
+                +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
+                "%)\n" +
+                progressBar,
               ephemeral: true,
             })
             .catch(console.log);
-        if (!userIsLinked)
-          return interaction
-            .reply({
-              content:
-                "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (!userHasDBEntry)
-          return interaction
-            .reply({
-              content:
-                "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (errorWildcard)
-          return interaction
-            .reply({
-              content: "Some error occured. Message n3xistence#0003 for help.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-
-        return interaction
-          .reply({
-            content:
-              "You do not meet the requirement:\n" +
-              (nowValue - thenValue) +
-              "/" +
-              rawData +
-              " " +
-              questType +
-              " completed. (" +
-              +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
-              "%)\n" +
-              progressBar,
-            ephemeral: true,
-          })
-          .catch(console.log);
+        }
       }
-    }
 
-    //quest 4 check
-    if (interaction.message.id == idList[3]) {
-      if (
-        interaction.customId === "quest_4" &&
-        checkEligibility(interaction.user.id, 4) &&
-        !hasCompleted(interaction.user.id, 4)
-      ) {
-        awardPoints(interaction.user, 4);
+      //quest 4 check
+      if (interaction.message.id == idList[3]) {
+        if (
+          interaction.customId === "quest_4" &&
+          checkEligibility(interaction.user.id, 4) &&
+          !hasCompleted(interaction.user.id, 4)
+        ) {
+          awardPoints(interaction.user, 4);
 
-        weeklyCheck(interaction.user.id, 4);
-        updateQuestCompletion(4);
-        return interaction
-          .reply({
-            content: "You received 2 points for completing quest 4.",
-            ephemeral: true,
-          })
-          .catch(console.log);
-      } else {
-        //error handling
-        if (hasCompleted(interaction.user.id, 4))
+          weeklyCheck(interaction.user.id, 4);
+          updateQuestCompletion(4);
+          return interaction
+            .reply({
+              content: "You received 2 points for completing quest 4.",
+              ephemeral: true,
+            })
+            .catch(console.log);
+        } else {
+          //error handling
+          if (hasCompleted(interaction.user.id, 4))
+            return interaction
+              .reply({
+                content:
+                  "You have already completed quest 4 for the week, look at the other quests or return next week for more rewards.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userIsLinked)
+            return interaction
+              .reply({
+                content:
+                  "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userHasDBEntry)
+            return interaction
+              .reply({
+                content:
+                  "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (errorWildcard)
+            return interaction
+              .reply({
+                content:
+                  "Some error occured. Message n3xistence#0003 for help.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+
           return interaction
             .reply({
               content:
-                "You have already completed quest 4 for the week, look at the other quests or return next week for more rewards.",
+                "You do not meet the requirement:\n" +
+                (nowValue - thenValue) +
+                "/" +
+                rawData +
+                " " +
+                questType +
+                " completed. (" +
+                +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
+                "%)\n" +
+                progressBar,
               ephemeral: true,
             })
             .catch(console.log);
-        if (!userIsLinked)
-          return interaction
-            .reply({
-              content:
-                "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (!userHasDBEntry)
-          return interaction
-            .reply({
-              content:
-                "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (errorWildcard)
-          return interaction
-            .reply({
-              content: "Some error occured. Message n3xistence#0003 for help.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-
-        return interaction
-          .reply({
-            content:
-              "You do not meet the requirement:\n" +
-              (nowValue - thenValue) +
-              "/" +
-              rawData +
-              " " +
-              questType +
-              " completed. (" +
-              +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
-              "%)\n" +
-              progressBar,
-            ephemeral: true,
-          })
-          .catch(console.log);
+        }
       }
-    }
 
-    //quest 5 check
-    if (interaction.message.id == idList[4]) {
-      if (
-        interaction.customId === "quest_5" &&
-        checkEligibility(interaction.user.id, 5) &&
-        !hasCompleted(interaction.user.id, 5)
-      ) {
-        awardPoints(interaction.user, 5);
+      //quest 5 check
+      if (interaction.message.id == idList[4]) {
+        if (
+          interaction.customId === "quest_5" &&
+          checkEligibility(interaction.user.id, 5) &&
+          !hasCompleted(interaction.user.id, 5)
+        ) {
+          awardPoints(interaction.user, 5);
 
-        weeklyCheck(interaction.user.id, 5);
-        updateQuestCompletion(5);
-        return interaction
-          .reply({
-            content: "You received 2 points for completing quest 5.",
-            ephemeral: true,
-          })
-          .catch(console.log);
-      } else {
-        //error handling
-        if (hasCompleted(interaction.user.id, 5))
+          weeklyCheck(interaction.user.id, 5);
+          updateQuestCompletion(5);
+          return interaction
+            .reply({
+              content: "You received 2 points for completing quest 5.",
+              ephemeral: true,
+            })
+            .catch(console.log);
+        } else {
+          //error handling
+          if (hasCompleted(interaction.user.id, 5))
+            return interaction
+              .reply({
+                content:
+                  "You have already completed quest 5 for the week, look at the other quests or return next week for more rewards.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userIsLinked)
+            return interaction
+              .reply({
+                content:
+                  "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (!userHasDBEntry)
+            return interaction
+              .reply({
+                content:
+                  "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
+                ephemeral: true,
+              })
+              .catch(console.log);
+          if (errorWildcard)
+            return interaction
+              .reply({
+                content:
+                  "Some error occured. Message n3xistence#0003 for help.",
+                ephemeral: true,
+              })
+              .catch(console.log);
+
           return interaction
             .reply({
               content:
-                "You have already completed quest 5 for the week, look at the other quests or return next week for more rewards.",
+                "You do not meet the requirement:\n" +
+                (nowValue - thenValue) +
+                "/" +
+                rawData +
+                " " +
+                questType +
+                " completed. (" +
+                +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
+                "%)\n" +
+                progressBar,
               ephemeral: true,
             })
             .catch(console.log);
-        if (!userIsLinked)
-          return interaction
-            .reply({
-              content:
-                "Your account is currently not linked. Use `/gverify` to link your SMMO id to your discord account.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (!userHasDBEntry)
-          return interaction
-            .reply({
-              content:
-                "Your account has no corresponding entry in the database. If you think this is a mistake, contact n3xistence#0003",
-              ephemeral: true,
-            })
-            .catch(console.log);
-        if (errorWildcard)
-          return interaction
-            .reply({
-              content: "Some error occured. Message n3xistence#0003 for help.",
-              ephemeral: true,
-            })
-            .catch(console.log);
-
-        return interaction
-          .reply({
-            content:
-              "You do not meet the requirement:\n" +
-              (nowValue - thenValue) +
-              "/" +
-              rawData +
-              " " +
-              questType +
-              " completed. (" +
-              +(((nowValue - thenValue) / rawData) * 100).toFixed(2) +
-              "%)\n" +
-              progressBar,
-            ephemeral: true,
-          })
-          .catch(console.log);
+        }
       }
+      //end of quests
     }
-    //end of quests
 
     //raid boss
     let boss = JSON.parse(fs.readFileSync("./data/boss_data.json"));

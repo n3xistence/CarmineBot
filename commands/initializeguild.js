@@ -1,85 +1,82 @@
-const { SlashCommandBuilder, GuildInviteManager } = require("discord.js");
+const { SlashCommandBuilder } = require("discord.js");
 
 const createDBSchema = (new_db_gen, new_db_ud) => {
-  new_db_gen.transaction(() => {
-    new_db_gen
-      .prepare(
-        `CREATE TABLE wars(guild_1_id INT,guild_1_name VARCHAR(10),guild_1_kills INT,guild_2_kills INT,guild_2_name VARCHAR(10),guild_2_id INT,status VARCHAR(10),message_id VARCHAR(10));`
-      )
-      .run();
-    new_db_gen
-      .prepare(
-        `CREATE TABLE targets(member_id VARCHAR(10),target_id VARCHAR(10));`
-      )
-      .run();
-    new_db_gen
-      .prepare(
-        `CREATE TABLE weeklycheck(id VARCHAR(10),q_1 INT,q_2 INT,q_3 INT,q_4 INT,q_5 INT);`
-      )
-      .run();
-    new_db_gen
-      .prepare(
-        `CREATE TABLE quests(id INT,raw_data INT,type VARCHAR(10),description VARCHAR(10),msg_id VARCHAR(10),completion INT);`
-      )
-      .run();
+  //Userdata Database
+  new_db_ud
+    .prepare(
+      `CREATE TABLE UserDataLive(id INT,name VARCHAR(10),level INT,steps INT,npc INT,pvp INT,quests INT,tasks INT,bosses INT,bounties INT,safemode INT,location_name VARCHAR(10),location_id INT,guild_id INT);`
+    )
+    .run();
+  new_db_ud
+    .prepare(
+      `CREATE TABLE JoinData(id INT,name VARCHAR(10),level INT,steps INT,npc INT,pvp INT,quests INT,tasks INT,bosses INT,bounties INT,safemode INT,location_name VARCHAR(10),location_id INT,guild_id INT);`
+    )
+    .run();
+  new_db_ud
+    .prepare(
+      `CREATE TABLE UserData(id INT,name TEXT, level INT,steps INT,npc INT,pvp INT,quests INT,tasks INT,bosses INT,bounties INT,safemode INT,location_name TEXT,location_id INT,guild_id INT);`
+    )
+    .run();
+  new_db_ud
+    .prepare(
+      `CREATE TABLE BossUserData(id INT,name TEXT,level INT,steps INT,npc INT,pvp INT,quests INT,tasks INT,bosses INT,bounties INT,safemode INT,location_name TEXT,location_id INT,guild_id INT);`
+    )
+    .run();
 
-    new_db_gen
-      .prepare(
-        `CREATE TABLE points(id VARCHAR(10),user VARCHAR(10),points INT);`
-      )
-      .run();
-    new_db_gen
-      .prepare(
-        `CREATE TABLE mee6levels(id VARCHAR(10),name VARCHAR(10),level INT);`
-      )
-      .run();
-    new_db_gen
-      .prepare(
-        `CREATE TABLE links(Discord_ID VARCHAR(10),SMMO_ID VARCHAR(10),SM_Ping INT);`
-      )
-      .run();
-    new_db_gen
-      .prepare(`CREATE TABLE endedwars(id INT,name VARCHAR(10),timestamp INT);`)
-      .run();
-    new_db_gen
-      .prepare(
-        `CREATE TABLE EventData(id INT, type VARCHAR(10), value INT, description VARCHAR(10), has_completed BIT, balance INT);`
-      )
-      .run();
-    new_db_gen
-      .prepare(
-        `CREATE TABLE giveaways(id INT, owner VARCHAR(10), type VARCHAR(10), time VARCHAR(10), winners INT, active INT);`
-      )
-      .run();
-    new_db_gen
-      .prepare(`CREATE TABLE linkedsince(id int,date varchar(10));`)
-      .run();
-  })();
-  new_db_gen.close();
+  //General Database
+  new_db_gen
+    .prepare(
+      `CREATE TABLE wars(guild_1_id INT,guild_1_name VARCHAR(10),guild_1_kills INT,guild_2_kills INT,guild_2_name VARCHAR(10),guild_2_id INT,status VARCHAR(10),message_id VARCHAR(10));`
+    )
+    .run();
+  new_db_gen
+    .prepare(
+      `CREATE TABLE targets(member_id VARCHAR(10),target_id VARCHAR(10));`
+    )
+    .run();
+  new_db_gen
+    .prepare(
+      `CREATE TABLE weeklycheck(id VARCHAR(10),q_1 INT,q_2 INT,q_3 INT,q_4 INT,q_5 INT);`
+    )
+    .run();
+  new_db_gen
+    .prepare(
+      `CREATE TABLE quests(id INT,raw_data INT,type VARCHAR(10),description VARCHAR(10),msg_id VARCHAR(10),completion INT);`
+    )
+    .run();
 
-  new_db_ud.transaction(() => {
-    new_db_ud
-      .prepare(
-        `CREATE TABLE UserDataLive(id INT,name VARCHAR(10),level INT,steps INT,npc INT,pvp INT,quests INT,tasks INT,bosses INT,bounties INT,safemode INT,location_name VARCHAR(10),location_id INT,guild_id INT);`
-      )
-      .run();
-    new_db_ud
-      .prepare(
-        `CREATE TABLE JoinData(id INT,name VARCHAR(10),level INT,steps INT,npc INT,pvp INT,quests INT,tasks INT,bosses INT,bounties INT,safemode INT,location_name VARCHAR(10),location_id INT, guild_id INT);`
-      )
-      .run();
-    new_db_ud
-      .prepare(
-        `CREATE TABLE UserData(id INT, name TEXT, level INT, steps INT, npc INT, pvp INT, quests INT, tasks INT, bosses INT, bounties INT, safemode INT, location_name TEXT, location_id INT, guild_id INT);`
-      )
-      .run();
-    new_db_ud
-      .prepare(
-        `CREATE TABLE BossUserData(id INT, name TEXT, level INT, steps INT, npc INT, pvp INT, quests INT, tasks INT, bosses INT, bounties INT, safemode INT, location_name TEXT, location_id INT, guild_id INT);`
-      )
-      .run();
-  });
+  new_db_gen
+    .prepare(`CREATE TABLE points(id VARCHAR(10),user VARCHAR(10),points INT);`)
+    .run();
+  new_db_gen
+    .prepare(
+      `CREATE TABLE mee6levels(id VARCHAR(10),name VARCHAR(10),level INT);`
+    )
+    .run();
+  new_db_gen
+    .prepare(
+      `CREATE TABLE links(Discord_ID VARCHAR(10),SMMO_ID VARCHAR(10),SM_Ping INT);`
+    )
+    .run();
+  new_db_gen
+    .prepare(`CREATE TABLE endedwars(id INT,name VARCHAR(10),timestamp INT);`)
+    .run();
+  new_db_gen
+    .prepare(
+      `CREATE TABLE EventData(id INT, type VARCHAR(10), value INT, description VARCHAR(10), has_completed BIT, balance INT);`
+    )
+    .run();
+  new_db_gen
+    .prepare(
+      `CREATE TABLE giveaways(id INT, owner VARCHAR(10), type VARCHAR(10), time VARCHAR(10), winners INT, active INT);`
+    )
+    .run();
+  new_db_gen
+    .prepare(`CREATE TABLE linkedsince(id int,date varchar(10));`)
+    .run();
+
   new_db_ud.close();
+  new_db_gen.close();
 };
 
 module.exports = {
@@ -213,7 +210,12 @@ module.exports = {
       JSON.stringify({}, null, "\t")
     );
     fs.writeFileSync("./data/boss_data.json", JSON.stringify({}, null, "\t"));
-    fs.writeFileSync("./data/dia_data.json", JSON.stringify({}, null, "\t"));
+
+    let dia_data = { price: 0, seller: 0, current_listing: {} };
+    fs.writeFileSync(
+      "./data/dia_data.json",
+      JSON.stringify(dia_data, null, "\t")
+    );
     fs.writeFileSync("./data/diaPrice.json", JSON.stringify({}, null, "\t"));
     fs.writeFileSync(
       "./data/guild_war_status.json",
